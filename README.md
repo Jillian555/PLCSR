@@ -5,20 +5,15 @@ PyTorch implementation of the paper "[Boosting Pseudo Labeling with Curriculum S
 # Get started
 ```Shell
 cd ARVGA
-python cdrs_arvga.py --ds='cora' --e=152 --e1=180 --e2=200 --e3=300 --epochs=900 --pseudo_num=36 --lr_dec=0.15 --func='col' --max_num=700 --w_sup=1.0
+python cgcn_mt.py --score=0.65 --de=1 --edp=0.2 --w_mt=1 --w_pq=0  --tt=0.5 --ls=0 --nl=1 --nt=0.3 --w_n=0.1 
+python cgcn_mt.py --score=0.65 --fea=1 --fdp=0.2 --w_mt=1 --w_pq=0  --tt=0.5 --ls=0 --nl=1 --nt=0.35 --w_n=0.4 
 ```
 
 # Citation
 
 ```BibTeX
 @article{plcsr,
-  author       = {Pengfei Zhu,
-        Jialu Li,
-        Yu Wang,  
-        Bin Xiao,
-        Jinglin Zhang,
-        Wanyu Lin,
-        Qinghua Hu},
+  author       = {Pengfei Zhu, Jialu Li, Yu Wang, Bin Xiao, Jinglin Zhang, Wanyu Lin, Qinghua Hu},
   title        = {Boosting Pseudo Labeling with Curriculum Self-Reflexion for Attributed Graph Clustering},
   journal      = {{IEEE} Trans. Neural Networks Learn. Syst.},
   volume       = {1},
