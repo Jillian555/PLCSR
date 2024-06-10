@@ -11,18 +11,19 @@ python cdrs_arvga.py --ds='cora' --e=152 --e1=180 --e2=200 --e3=300 --epochs=900
 # Citation
 
 ```BibTeX
-@article{cdrs,
-  author       = {Pengfei Zhu and
-                  Jialu Li and
-                  Yu Wang and
-                  Bin Xiao and
-                  Shuai Zhao and
-                  Qinghua Hu},
+@article{plcsr,
+  author       = {Pengfei Zhu,
+        Jialu Li,
+        Yu Wang,  
+        Bin Xiao,
+        Jinglin Zhang,
+        Wanyu Lin,
+        Qinghua Hu},
   title        = {Boosting Pseudo Labeling with Curriculum Self-Reflexion for Attributed Graph Clustering},
   journal      = {{IEEE} Trans. Neural Networks Learn. Syst.},
   volume       = {1},
   number       = {1},
-  pages        = {1--13},
+  pages        = {1--14},
   year         = {2024},
 }
 ```
