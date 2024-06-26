@@ -4,9 +4,8 @@ PyTorch implementation of the paper "[Boosting Pseudo Labeling with Curriculum S
 
 # Get started
 ```Shell
-cd ARVGA
-python cgcn_mt.py --score=0.65 --de=1 --edp=0.2 --w_mt=1 --w_pq=0  --tt=0.5 --ls=0 --nl=1 --nt=0.3 --w_n=0.1 
-python cgcn_mt.py --score=0.65 --fea=1 --fdp=0.2 --w_mt=1 --w_pq=0  --tt=0.5 --ls=0 --nl=1 --nt=0.35 --w_n=0.4 
+python main.py --sta_high=0.65  --edp=0.2 --w_pos=1 --w_pq=0  --tt=0.5   --sta_low=0.3 --w_nega=0.1 
+python main.py --sta_high=0.65  --fdp=0.2 --w_pos=1 --w_pq=0  --tt=0.5  --sta_low=0.35 --w_nega=0.4 
 ```
 
 # Citation
