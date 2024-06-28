@@ -9,7 +9,7 @@ from torch import optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 from model import PLCSR, Discriminator
-from optimizer import loss_function,dis_loss
+from optimizer import loss_function, dis_loss
 from utils import mask_gae_edges, preprocess_graph, weights_init, load_ds, load_data
 from sklearn.cluster import KMeans
 from metric import cluster_accuracy
@@ -35,26 +35,26 @@ parser.add_argument('--hidden3', type=int, default=64, help='Number of units in 
 parser.add_argument('--save_ckpt', type=int, default=0, help='Whether to save checkpoint, 0/1.')
 parser.add_argument('--use_ckpt', type=int, default=0, help='Whether to use checkpoint, 0/1.')
 parser.add_argument('--optimi', type=str, default='SGD', help="Optimizers used, [SGD ADAM]")
-parser.add_argument('--e', type=int, default=152, help='Number of epochs to pretrain.')
+parser.add_argument('--e', type=int, default=150, help='Number of epochs to pretrain.')
 parser.add_argument('--e1', type=int, default=250, help='Number of epochs.')
 parser.add_argument('--epochs', type=int, default=1500, help='Number of epochs to train.')
 
 parser.add_argument('--alpha', type=float, default=0.999, help='Rate of updating teacher parameters.')
 parser.add_argument('--w_re', type=float, default=0.01, help='Weight of lossre.')
-parser.add_argument('--w_pq', type=float, default=0, help='Weight of losspq.')
+parser.add_argument('--w_pq', type=float, default=0., help='Weight of losspq.')
 parser.add_argument('--w_con', type=float, default=2.0, help='Weight of losscon.')
-parser.add_argument('--w_pos', type=float, default=1, help='Weight of losspos.')
+parser.add_argument('--w_pos', type=float, default=1.0, help='Weight of losspos.')
 parser.add_argument('--w_nega', type=float, default=0.005, help='Weight of lossnega.')
 
-parser.add_argument('--edp', type=float, default=0, help='Edge drop percent.')
-parser.add_argument('--fdp', type=float, default=0, help='Feature drop percent.')
-parser.add_argument('--sta_high', type=float, default=0.95,help='Static high threshold.')
-parser.add_argument('--ini_dyn', type=float, default=0.96,help='Initial dynamic threshold.')
-parser.add_argument('--tt', type=float, default=0.3,help='Dynamic teacher threshold.')
-parser.add_argument('--st', type=float, default=0.2,help='Dynamic student threshold.')
-parser.add_argument('--sta_low', type=float, default=0.2,help='Static low threshold.')
+parser.add_argument('--edp', type=float, default=0., help='Edge drop percent.')
+parser.add_argument('--fdp', type=float, default=0., help='Feature drop percent.')
+parser.add_argument('--sta_high', type=float, default=0.95, help='Static high threshold.')
+parser.add_argument('--ini_dyn', type=float, default=0.96, help='Initial dynamic threshold.')
+parser.add_argument('--tt', type=float, default=0.3, help='Dynamic teacher threshold.')
+parser.add_argument('--st', type=float, default=0.2, help='Dynamic student threshold.')
+parser.add_argument('--sta_low', type=float, default=0.2, help='Static low threshold.')
 parser.add_argument('--replace', type=int, default=1, help='Sampling with replacement, 0/1.')
-parser.add_argument('--encoder', type=str, default='a', help="Encoder for selecting nodes, [s, t, c]")
+parser.add_argument('--encoder', type=str, default='c', help="Encoder for selecting nodes, [s, t, c]")
 
 args = parser.parse_args()
 
@@ -137,7 +137,7 @@ def main():
         pseudo_labels = pseudo_labels.cuda()
         n_pseudo_labels = n_pseudo_labels.cuda()
 
-    ee=0
+    ee = 0
     if args.use_ckpt == 1:
         ee = args.e1
         checkpoint = torch.load('checkpoint_{}.pkl'.format(args.ds))
@@ -185,7 +185,7 @@ def main():
                     dis_loss_.backward(retain_graph=True)
                     optimizer_dis_S.step()
             loss = loss_function(preds=model_S.dc(z), labels=adj_label, n_nodes=n_nodes, norm=norm,
-                                 pos_weight=pos_weight, mu=mu, logvar=logvar, )
+                                 pos_weight=pos_weight, mu=mu, logvar=logvar)
             loss.backward()
             optimizer_S.step()
             hidden_emb = hidden_emb.cpu().data
@@ -292,8 +292,6 @@ def main():
             cluster_pred_score_SS, cluster_pred_SS = dist_2_label(q_SS)
             losspq_TT, p_TT, q_TT = loss_func(mu_TT, cluster_centers2)
             cluster_pred_score_TT, cluster_pred_TT = dist_2_label(q_TT)
-            if epoch > args.e1:
-                loss += args.w_pq * losspq
             acc, nmi, f1 = cluster_accuracy(cluster_pred.cpu(), labels.cpu(), cluster_num)
             print('Trained model result: {:.2f},{:.2f},{:.2f}'.format(acc*100, nmi*100, f1*100))
 
@@ -311,7 +309,6 @@ def main():
 
             if epoch > args.e1:
                 idx_pos = idx_con_orig + idx_con
-                sacc, _, _ = cluster_accuracy(pseudo_labels[idx_pos].cpu(), labels[idx_pos].cpu(), cluster_num)
                 if args.w_pos != 0 and epoch % 10 == 0:
                     if args.replace == 1:
                         idx_con = []
@@ -332,6 +329,7 @@ def main():
                                     idx_con.append(i)
                                     pseudo_labels[i] = cluster_pred[i]
                     nums.append(len(idx_pos))
+                    sacc, _, _ = cluster_accuracy(pseudo_labels[idx_pos].cpu(), labels[idx_pos].cpu(), cluster_num)
                     saccs.append(float('{:.4f}'.format(sacc)))
                 if args.w_pos != 0:
                     loss_pos = F.nll_loss(torch.log(q[idx_pos]), pseudo_labels[idx_pos])
@@ -351,7 +349,7 @@ def main():
                     else:
                         loss_nega = torch.mean(-torch.sum(torch.mul(torch.log(1 - q)[idx_nega],
                                                                     n_pseudo_labels[idx_nega]), dim=1))
-            loss += args.w_pos * loss_pos + args.w_nega * loss_nega
+            loss += args.w_pq * losspq + args.w_pos * loss_pos + args.w_nega * loss_nega
             print('loss re pq pos nega', loss_re, losspq, loss_pos, loss_nega)
             loss.backward()
             optimizer_dec_S.step()
